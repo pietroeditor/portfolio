@@ -1,9 +1,21 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
 import { PaintFill } from '@/components/ui/PaintFill';
 import type { Project } from '@/types';
+
+/**
+ * Only one preview is ever allowed to run. Held outside React so switching
+ * cards costs nothing — no state, no re-render, just two DOM calls.
+ */
+let activePreview: HTMLVideoElement | null = null;
+
+function halt(video: HTMLVideoElement) {
+  video.style.opacity = '0';
+  video.pause();
+  video.currentTime = 0;
+}
 
 interface WorkGridProps {
   projects: readonly Project[];
@@ -30,21 +42,44 @@ function Card({
   onHover: (p: Project) => void;
 }) {
   const [lit, setLit] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  /** Tracked in a ref so a late `playing` event can't reveal a stale preview. */
+  const hovered = useRef(false);
+
+  const enter = useCallback(() => {
+    hovered.current = true;
+    setLit(true);
+    onHover(project);
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (activePreview && activePreview !== video) halt(activePreview);
+    activePreview = video;
+
+    video.currentTime = 0;
+    // Rejected autoplay just means the thumbnail stays — nothing to recover.
+    void video.play().catch(() => {});
+  }, [onHover, project]);
+
+  const leave = useCallback(() => {
+    hovered.current = false;
+    setLit(false);
+
+    const video = videoRef.current;
+    if (!video) return;
+    if (activePreview === video) activePreview = null;
+    halt(video);
+  }, []);
 
   return (
     <button
       type="button"
       onClick={() => onOpen(project)}
-      onMouseEnter={() => {
-        setLit(true);
-        onHover(project);
-      }}
-      onMouseLeave={() => setLit(false)}
-      onFocus={() => {
-        setLit(true);
-        onHover(project);
-      }}
-      onBlur={() => setLit(false)}
+      onMouseEnter={enter}
+      onMouseLeave={leave}
+      onFocus={enter}
+      onBlur={leave}
       className="group glass-quiet relative block w-full overflow-hidden rounded-[1.5rem] p-3 text-left transition-transform duration-500 ease-drift hover:-translate-y-1"
     >
       <PaintFill active={lit} />
@@ -57,6 +92,31 @@ function Card({
           loading={eager ? 'eager' : 'lazy'}
           className="aspect-video w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.06]"
         />
+        {/*
+          The preview sits over the still and is revealed only once frames are
+          actually decoding, so the crossfade never lands on an empty element.
+          It carries the same zoom as the thumbnail to stay registered with it.
+        */}
+        {project.media.video && (
+          <video
+            ref={videoRef}
+            src={project.media.video}
+            poster={project.media.poster}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+            tabIndex={-1}
+            disablePictureInPicture
+            onPlaying={() => {
+              if (hovered.current && videoRef.current) videoRef.current.style.opacity = '1';
+            }}
+            className="pointer-events-none absolute inset-0 h-full w-full scale-[1.02] object-cover opacity-0 transition-[opacity,transform] duration-[900ms] ease-drift group-hover:scale-[1.06]"
+            style={{ transitionDuration: '240ms, 900ms' }}
+          />
+        )}
+
         <span
           aria-hidden
           className="absolute inset-0 rounded-[0.875rem]"
