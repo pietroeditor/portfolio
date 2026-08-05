@@ -1,54 +1,97 @@
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#E4E4E8" />
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-  <title>Pietro | Gaming Video Editor</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
 
-  <meta
-    name="description"
-    content="Gaming video editor specializing in Minecraft and Roblox. Long-form storytelling, comedy, challenge formats and retention-first editing."
-  />
+    <meta name="theme-color" content="#E4E4E8" />
 
-  <meta
-    name="keywords"
-    content="video editor, gaming video editor, minecraft editor, roblox editor, youtube editor, freelance video editor, long form editor, retention editing"
-  />
+    <title>Pietro | Gaming Video Editor</title>
 
-  <meta name="author" content="Pietro" />
+    <meta
+      name="description"
+      content="Gaming video editor specializing in Minecraft and Roblox. Long-form storytelling, comedy, challenge formats and retention-first editing."
+    />
 
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Pietro | Gaming Video Editor" />
+    <meta
+      name="keywords"
+      content="video editor, gaming video editor, minecraft editor, roblox editor, youtube editor, freelance video editor, long form editor, retention editing"
+    />
 
-  <meta
-    property="og:description"
-    content="Long-form gaming video editor focused on Minecraft, Roblox and retention-first storytelling."
-  />
+    <meta name="author" content="Pietro" />
 
-  <meta property="og:image" content="https://pietroeditor.com/og-image.jpg" />
+    <!-- Google Search Console -->
+    <!-- Cole aqui a meta que o Google forneceu -->
+    <!-- Exemplo:
+    <meta name="google-site-verification" content="SEU-CODIGO-AQUI" />
+    -->
 
-  <meta property="og:url" content="https://pietroeditor.com" />
+    <link rel="canonical" href="https://pietroeditor.com" />
 
-  <meta property="og:site_name" content="Pietro" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pietro" />
+    <meta property="og:url" content="https://pietroeditor.com" />
+    <meta property="og:title" content="Pietro | Gaming Video Editor" />
 
-  <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      property="og:description"
+      content="Long-form gaming video editor focused on Minecraft, Roblox and retention-first storytelling."
+    />
 
-  <meta name="twitter:title" content="Pietro | Gaming Video Editor" />
+    <meta
+      property="og:image"
+      content="https://pietroeditor.com/og-image.jpg"
+    />
 
-  <meta
-    name="twitter:description"
-    content="Long-form gaming video editor focused on Minecraft, Roblox and retention-first storytelling."
-  />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
 
-  <meta
-    name="twitter:image"
-    content="https://pietroeditor.com/og-image.jpg"
-  />
+    <meta
+      name="twitter:title"
+      content="Pietro | Gaming Video Editor"
+    />
 
-  <link rel="canonical" href="https://pietroeditor.com" />
+    <meta
+      name="twitter:description"
+      content="Long-form gaming video editor focused on Minecraft, Roblox and retention-first storytelling."
+    />
 
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta
+      name="twitter:image"
+      content="https://pietroeditor.com/og-image.jpg"
+    />
 
-  <link rel="manifest" href="/site.webmanifest" />
-</head>
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Pietro",
+      "url": "https://pietroeditor.com",
+      "image": "https://pietroeditor.com/og-image.jpg",
+      "jobTitle": "Gaming Video Editor",
+      "description": "Gaming video editor specializing in Minecraft, Roblox and long-form YouTube content.",
+      "email": "mailto:hello@pietroeditor.com",
+      "sameAs": [
+        "https://x.com/editbyorteip"
+      ]
+    }
+    </script>
+
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
