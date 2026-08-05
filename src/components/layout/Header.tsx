@@ -11,7 +11,7 @@ const NAV = [
 export function Header({ site }: { site: SiteConfig }) {
   return (
     <motion.header
-      className="relative z-20 flex items-center justify-between gap-4 px-gutter pt-6"
+      className="relative z-20 flex items-center justify-between gap-4 px-gutter pt-11"
       initial={{ opacity: 0, y: -14, filter: 'blur(8px)' }}
       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}

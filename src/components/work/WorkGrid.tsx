@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
@@ -35,21 +35,22 @@ function Card({
   eager,
   onOpen,
   onHover,
+  autoPlay,
 }: {
   project: Project;
   eager: boolean;
   onOpen: (p: Project) => void;
   onHover: (p: Project) => void;
+  /** Touch devices only — driven by which card is centred in the viewport. */
+  autoPlay: boolean;
 }) {
   const [lit, setLit] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   /** Tracked in a ref so a late `playing` event can't reveal a stale preview. */
-  const hovered = useRef(false);
+  const wanted = useRef(false);
 
-  const enter = useCallback(() => {
-    hovered.current = true;
-    setLit(true);
-    onHover(project);
+  const startPreview = useCallback(() => {
+    wanted.current = true;
 
     const video = videoRef.current;
     if (!video) return;
@@ -60,17 +61,38 @@ function Card({
     video.currentTime = 0;
     // Rejected autoplay just means the thumbnail stays — nothing to recover.
     void video.play().catch(() => {});
-  }, [onHover, project]);
+  }, []);
 
-  const leave = useCallback(() => {
-    hovered.current = false;
-    setLit(false);
+  const stopPreview = useCallback(() => {
+    wanted.current = false;
 
     const video = videoRef.current;
     if (!video) return;
     if (activePreview === video) activePreview = null;
     halt(video);
   }, []);
+
+  const enter = useCallback(() => {
+    setLit(true);
+    onHover(project);
+    startPreview();
+  }, [onHover, project, startPreview]);
+
+  const leave = useCallback(() => {
+    setLit(false);
+    stopPreview();
+  }, [stopPreview]);
+
+  /**
+   * Touch path. Runs only when this card takes the centre, and tears down when
+   * it loses it — so a card that stays centred is never restarted, and desktop
+   * (where `autoPlay` is permanently false) never enters this branch at all.
+   */
+  useEffect(() => {
+    if (!autoPlay) return;
+    startPreview();
+    return stopPreview;
+  }, [autoPlay, startPreview, stopPreview]);
 
   return (
     <button
@@ -110,7 +132,7 @@ function Card({
             tabIndex={-1}
             disablePictureInPicture
             onPlaying={() => {
-              if (hovered.current && videoRef.current) videoRef.current.style.opacity = '1';
+              if (wanted.current && videoRef.current) videoRef.current.style.opacity = '1';
             }}
             className="pointer-events-none absolute inset-0 h-full w-full scale-[1.02] object-cover opacity-0 transition-[opacity,transform] duration-[900ms] ease-drift group-hover:scale-[1.06]"
             style={{ transitionDuration: '240ms, 900ms' }}
@@ -151,7 +173,108 @@ function Card({
   );
 }
 
+/** A card counts as centred while its middle sits inside the middle 70%. */
+const CENTRE_REACH = 0.35;
+
 export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
+  const [centred, setCentred] = useState<string | null>(null);
+  const nodes = useRef(new Map<string, HTMLElement>());
+
+  /**
+   * Touch devices drive the preview from scroll position instead of hover.
+   *
+   * The election has to be re-run continuously, not on crossing events: two
+   * cards can both sit near the middle and swap which one is closest without
+   * either entering or leaving anything, which is how an active card gets
+   * stuck. So the IntersectionObserver only maintains the candidate set — the
+   * cards actually on screen — and a scroll listener throttled to one
+   * animation frame measures those few and picks the closest to centre.
+   */
+  useEffect(() => {
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let observer: IntersectionObserver | null = null;
+    let frame = 0;
+    const onScreen = new Set<string>();
+
+    const measure = () => {
+      frame = 0;
+
+      const middle = window.innerHeight / 2;
+      const reach = window.innerHeight * CENTRE_REACH;
+      let best: string | null = null;
+      let bestDistance = Infinity;
+
+      onScreen.forEach((id) => {
+        const el = nodes.current.get(id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - middle);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = id;
+        }
+      });
+
+      // Nothing close enough to the middle — every preview goes back to rest.
+      if (bestDistance > reach) best = null;
+
+      // A card that stays elected never re-renders, so it never restarts.
+      setCentred((prev) => (prev === best ? prev : best));
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+
+    const teardown = () => {
+      observer?.disconnect();
+      observer = null;
+      onScreen.clear();
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      setCentred(null);
+    };
+
+    const setup = () => {
+      // Desktop keeps hover and nothing else.
+      if (fine.matches) return teardown();
+      if (observer) return;
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const id = (entry.target as HTMLElement).dataset.projectId;
+            if (!id) return;
+            if (entry.isIntersecting) onScreen.add(id);
+            else onScreen.delete(id);
+          });
+          schedule();
+        },
+        { threshold: 0 },
+      );
+
+      nodes.current.forEach((el) => observer?.observe(el));
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule, { passive: true });
+      // Elect on arrival, so the first centred card plays without a scroll.
+      schedule();
+    };
+
+    setup();
+    fine.addEventListener('change', setup);
+    return () => {
+      fine.removeEventListener('change', setup);
+      teardown();
+    };
+  }, []);
+
+  const register = useCallback((id: string) => (el: HTMLElement | null) => {
+    if (el) nodes.current.set(id, el);
+    else nodes.current.delete(id);
+  }, []);
+
   return (
     <section id="work" className="relative pb-bay pt-6">
       <div className="mx-auto w-full max-w-shell px-gutter">
@@ -162,8 +285,19 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
 
           <div className="mt-block grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, i) => (
-              <motion.article key={project.id} variants={riseIn}>
-                <Card project={project} eager={i < 3} onOpen={onOpen} onHover={onHover} />
+              <motion.article
+                key={project.id}
+                variants={riseIn}
+                ref={register(project.id)}
+                data-project-id={project.id}
+              >
+                <Card
+                  project={project}
+                  eager={i < 3}
+                  onOpen={onOpen}
+                  onHover={onHover}
+                  autoPlay={centred === project.id}
+                />
               </motion.article>
             ))}
           </div>
