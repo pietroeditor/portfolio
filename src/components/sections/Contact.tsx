@@ -1,0 +1,101 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+
+import { riseIn, stagger, viewportOnce } from '@/lib/motion';
+import { PaintFill } from '@/components/ui/PaintFill';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import type { SiteConfig } from '@/types';
+
+function MethodCard({
+  label,
+  value,
+  href,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  href: string | null;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  const [lit, setLit] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setLit(true)}
+      onMouseLeave={() => setLit(false)}
+      className="glass-quiet relative overflow-hidden rounded-[1.5rem] p-3"
+    >
+      <PaintFill active={lit} />
+
+      <div className="relative flex items-center justify-between gap-4 px-1 pt-1">
+        <span className="text-[0.9375rem] font-semibold tracking-[-0.012em] text-muted">
+          {label}
+        </span>
+        <button
+          type="button"
+          onClick={onCopy}
+          className="rounded-full border border-line px-3 py-1.5 text-micro font-semibold text-muted transition-colors duration-200 hover:border-ink/30 hover:text-ink"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+
+      {href ? (
+        <a
+          href={href}
+          className="relative mt-4 block break-all px-1 pb-3.5 text-[clamp(1.05rem,2.1vw,1.5rem)] font-bold tracking-[-0.024em] transition-opacity duration-300 hover:opacity-60"
+        >
+          {value}
+        </a>
+      ) : (
+        <span className="relative mt-4 block break-all px-1 pb-3.5 text-[clamp(1.05rem,2.1vw,1.5rem)] font-bold tracking-[-0.024em]">
+          {value}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function Contact({ site }: { site: SiteConfig }) {
+  const { copied, copy } = useCopyToClipboard();
+
+  const methods = [
+    { label: 'Email', value: site.email, href: `mailto:${site.email}` },
+    { label: 'Discord', value: site.discord, href: null },
+  ];
+
+  return (
+    <section id="contact" className="relative pb-bay pt-bay">
+      <div className="mx-auto w-full max-w-shell px-gutter">
+        <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
+          <motion.div variants={riseIn}>
+            <h2 className="max-w-[16ch] text-balance text-display">Send me the raws.</h2>
+            <p className="mt-5 max-w-prose text-pretty text-lead text-muted">
+              A link to the channel, the runtime you are aiming for, and one raw file. Enough for me
+              to tell you whether I am the right editor — usually the same day.
+            </p>
+          </motion.div>
+
+          <motion.div variants={riseIn} className="mt-block grid gap-5 md:grid-cols-2">
+            {methods.map((m) => (
+              <MethodCard
+                key={m.label}
+                label={m.label}
+                value={m.value}
+                href={m.href}
+                copied={copied}
+                onCopy={() => void copy(m.value)}
+              />
+            ))}
+          </motion.div>
+
+          <motion.div variants={riseIn} className="mt-10 border-t border-lineSoft pt-6">
+            <span className="text-micro text-faint">{site.name}</span>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

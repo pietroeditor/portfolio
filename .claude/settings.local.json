@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install)",
+      "PowerShell(winget search --id OpenJS.NodeJS --exact --source winget)",
+      "PowerShell(winget search --id OpenJS.NodeJS.LTS --exact --source winget)"
+    ]
+  }
+}
