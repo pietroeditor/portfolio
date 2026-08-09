@@ -1,18 +1,54 @@
 import { Liquid } from '@/components/bg/Liquid';
 
+/**
+ * A band hugging the four viewport edges. Each gradient is opaque at its own
+ * edge and gone a little past the frame; the four layers union together, so
+ * the whole interior of the shell is left untouched.
+ */
+const BAND = 'calc(var(--frame) + 18px)';
+const RIM = [
+  `linear-gradient(to right, #000, transparent ${BAND})`,
+  `linear-gradient(to left, #000, transparent ${BAND})`,
+  `linear-gradient(to bottom, #000, transparent ${BAND})`,
+  `linear-gradient(to top, #000, transparent ${BAND})`,
+].join(', ');
+
 /** The visible edge of the object. Drawn over everything, never interactive. */
 export function Shell() {
   return (
-    <div
-      aria-hidden
-      className="shell-frame pointer-events-none fixed z-[120]"
-      style={{
-        top: 'var(--frame)',
-        right: 'var(--frame)',
-        bottom: 'var(--frame)',
-        left: 'var(--frame)',
-      }}
-    />
+    <>
+      {/*
+        Liquid Glass rim. Four edge gradients union into a band that hugs the
+        outside of the shell and is completely transparent everywhere else, so
+        nothing inside the frame is ever touched — the content stays sharp to
+        the last pixel and only what spills past the edge goes under the glass.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[115]"
+        style={{
+          backdropFilter: 'blur(18px) saturate(185%) brightness(1.06)',
+          WebkitBackdropFilter: 'blur(18px) saturate(185%) brightness(1.06)',
+          // Wet white film — thickest at the very edge, gone by the frame.
+          background:
+            'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.34) 42%, rgba(255,255,255,0.3) 58%, rgba(255,255,255,0.48) 100%)',
+          maskImage: RIM,
+          WebkitMaskImage: RIM,
+          transform: 'translateZ(0)',
+        }}
+      />
+
+      <div
+        aria-hidden
+        className="shell-frame pointer-events-none fixed z-[120]"
+        style={{
+          top: 'var(--frame)',
+          right: 'var(--frame)',
+          bottom: 'var(--frame)',
+          left: 'var(--frame)',
+        }}
+      />
+    </>
   );
 }
 

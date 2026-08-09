@@ -38,7 +38,7 @@ function WorldCard({
     <div
       onMouseEnter={() => setLit(true)}
       onMouseLeave={() => setLit(false)}
-      className="group glass-quiet relative overflow-hidden rounded-[1.5rem] p-3"
+      className="group glass-quiet relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-500 ease-drift hover:-translate-y-1"
     >
       <PaintFill active={lit} />
 
@@ -47,7 +47,7 @@ function WorldCard({
           src={image}
           alt={alt}
           loading="lazy"
-          className="aspect-[16/10] w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.06]"
+          className="aspect-[16/10] w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.045]"
         />
         <div
           aria-hidden
@@ -58,8 +58,12 @@ function WorldCard({
 
       <div className="relative px-1 pb-3.5 pt-3.5 text-cardTitle">{name}</div>
 
+      {/*
+        `mt-auto` pins the bar to the bottom of an equal-height card, and the
+        two-line floor keeps both bars the same height whatever the copy does.
+      */}
       <p
-        className="relative rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.012em] text-muted transition-colors duration-[620ms] ease-drift"
+        className="relative mt-auto min-h-[4.375rem] rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.012em] text-muted transition-colors duration-[620ms] ease-drift"
         style={{
           background: lit ? 'rgba(10,10,11,0.055)' : 'rgba(255,255,255,0.34)',
           boxShadow: 'inset 0 0 0 1px rgba(10,10,11,0.05)',
@@ -73,16 +77,17 @@ function WorldCard({
 
 export function Worlds() {
   return (
-    <section id="worlds" className="relative py-bay">
+    <section id="worlds" className="relative pb-bay">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.h2 variants={riseIn} className="max-w-[20ch] text-balance text-title">
             Two worlds, one job.
           </motion.h2>
 
-          <div className="mt-block grid gap-5 md:grid-cols-2">
+          {/* Equal rows, so stacking on mobile can't let one card outgrow the other. */}
+          <div className="mt-block grid auto-rows-fr gap-5 md:grid-cols-2">
             {WORLDS.map(({ key, name, line, image, alt }) => (
-              <motion.div key={key} variants={riseIn}>
+              <motion.div key={key} variants={riseIn} className="h-full">
                 <WorldCard name={name} line={line} image={image} alt={alt} />
               </motion.div>
             ))}

@@ -102,7 +102,7 @@ function Card({
       onMouseLeave={leave}
       onFocus={enter}
       onBlur={leave}
-      className="group glass-quiet relative block w-full overflow-hidden rounded-[1.5rem] p-3 text-left transition-transform duration-500 ease-drift hover:-translate-y-1"
+      className="group glass-quiet relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] p-3 text-left transition-transform duration-500 ease-drift hover:-translate-y-1"
     >
       <PaintFill active={lit} />
 
@@ -112,7 +112,7 @@ function Card({
           src={project.media.poster}
           alt={project.media.alt}
           loading={eager ? 'eager' : 'lazy'}
-          className="aspect-video w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.06]"
+          className="aspect-video w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.045]"
         />
         {/*
           The preview sits over the still and is revealed only once frames are
@@ -134,7 +134,7 @@ function Card({
             onPlaying={() => {
               if (wanted.current && videoRef.current) videoRef.current.style.opacity = '1';
             }}
-            className="pointer-events-none absolute inset-0 h-full w-full scale-[1.02] object-cover opacity-0 transition-[opacity,transform] duration-[900ms] ease-drift group-hover:scale-[1.06]"
+            className="pointer-events-none absolute inset-0 h-full w-full scale-[1.02] object-cover opacity-0 transition-[opacity,transform] duration-[900ms] ease-drift group-hover:scale-[1.045]"
             style={{ transitionDuration: '240ms, 900ms' }}
           />
         )}
@@ -151,12 +151,14 @@ function Card({
         </span>
       </span>
 
-      {/* Title */}
-      <span className="relative block px-1 pb-3.5 pt-3.5 text-cardTitle">{project.title}</span>
+      {/* Title — floored at two lines so every card's type block matches. */}
+      <span className="relative block min-h-[3.25rem] px-1 pb-3.5 pt-3.5 text-cardTitle">
+        {project.title}
+      </span>
 
-      {/* Footer bar */}
+      {/* Footer bar, pinned to the bottom of an equal-height card. */}
       <span
-        className="relative flex items-center justify-between gap-3 rounded-[0.75rem] px-3.5 py-3 transition-colors duration-[620ms] ease-drift"
+        className="relative mt-auto flex items-center justify-between gap-3 rounded-[0.75rem] px-3.5 py-3 transition-colors duration-[620ms] ease-drift"
         style={{
           background: lit ? 'rgba(10,10,11,0.055)' : 'rgba(255,255,255,0.34)',
           boxShadow: 'inset 0 0 0 1px rgba(10,10,11,0.05)',
@@ -276,20 +278,24 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
   }, []);
 
   return (
-    <section id="work" className="relative pb-bay pt-6">
+    <section id="work" className="relative pb-bay">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
+          {/* The two halves that carry the claim sit forward; the hinge recedes. */}
           <motion.h1 variants={riseIn} className="max-w-[20ch] text-balance text-title">
-            Six cuts that explain how I think.
+            <span className="font-semibold tracking-[-0.03em]">Six cuts</span>
+            <span className="text-muted"> that explain </span>
+            <span className="font-semibold tracking-[-0.03em]">how I think.</span>
           </motion.h1>
 
-          <div className="mt-block grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-block grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, i) => (
               <motion.article
                 key={project.id}
                 variants={riseIn}
                 ref={register(project.id)}
                 data-project-id={project.id}
+                className="h-full"
               >
                 <Card
                   project={project}

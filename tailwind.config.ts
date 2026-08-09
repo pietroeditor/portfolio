@@ -55,7 +55,11 @@ const config: Config = {
         micro: ['0.75rem', { lineHeight: '1.2', letterSpacing: '-0.004em' }],
       },
       spacing: {
-        bay: 'clamp(3.5rem, 6.5vw, 6.5rem)',
+        /**
+         * The rest between sections. Applied as bottom padding only — two
+         * stacked sections were doubling it into a hole.
+         */
+        bay: 'clamp(3.25rem, 5.6vw, 5.5rem)',
         block: 'clamp(1.5rem, 2.6vw, 2.5rem)',
         gutter: 'clamp(1.25rem, 3vw, 3rem)',
       },

@@ -6,6 +6,7 @@ import { site } from '@/data/site';
 import { useAccent } from '@/hooks/useAccent';
 import { Shell, Backdrop } from '@/components/layout/Shell';
 import { Header } from '@/components/layout/Header';
+import { WhatIDo } from '@/components/sections/WhatIDo';
 import { LiquidReveal } from '@/components/ui/LiquidReveal';
 import { WorkGrid } from '@/components/work/WorkGrid';
 import { Worlds } from '@/components/sections/Worlds';
@@ -41,6 +42,8 @@ export default function App() {
         style={{ paddingLeft: 'var(--frame)', paddingRight: 'var(--frame)' }}
       >
         <Header site={site} />
+
+        <WhatIDo />
 
         <WorkGrid projects={featuredProjects} onOpen={handleOpen} onHover={setAccentSource} />
 

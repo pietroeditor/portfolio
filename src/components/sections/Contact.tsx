@@ -25,7 +25,7 @@ function MethodCard({
     <div
       onMouseEnter={() => setLit(true)}
       onMouseLeave={() => setLit(false)}
-      className="glass-quiet relative overflow-hidden rounded-[1.5rem] p-3"
+      className="group glass-quiet relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-500 ease-drift hover:-translate-y-1"
     >
       <PaintFill active={lit} />
 
@@ -67,14 +67,16 @@ export function Contact({ site }: { site: SiteConfig }) {
   ];
 
   return (
-    <section id="contact" className="relative pb-bay pt-bay">
+    <section id="contact" className="relative pb-bay">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.div variants={riseIn}>
-            <h2 className="max-w-[16ch] text-balance text-display">Send me the raws.</h2>
+            {/* Same rank as every other section heading — the page ends level. */}
+            <h2 className="max-w-[16ch] text-balance text-title font-semibold tracking-[-0.03em]">
+              Contact
+            </h2>
             <p className="mt-5 max-w-prose text-pretty text-lead text-muted">
-              A link to the channel, the runtime you are aiming for, and one raw file. Enough for me
-              to tell you whether I am the right editor — usually the same day.
+              Reach out if you'd like to work together.
             </p>
           </motion.div>
 
@@ -91,8 +93,12 @@ export function Contact({ site }: { site: SiteConfig }) {
             ))}
           </motion.div>
 
-          <motion.div variants={riseIn} className="mt-10 border-t border-lineSoft pt-6">
+          <motion.div
+            variants={riseIn}
+            className="mt-10 flex items-center justify-between gap-4 border-t border-lineSoft pt-6"
+          >
             <span className="text-micro text-faint">{site.name}</span>
+            <span className="text-micro text-faint tabular">{new Date().getFullYear()}</span>
           </motion.div>
         </motion.div>
       </div>
