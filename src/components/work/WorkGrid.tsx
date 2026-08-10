@@ -151,9 +151,13 @@ function Card({
         </span>
       </span>
 
-      {/* Title — floored at two lines so every card's type block matches. */}
-      <span className="relative block min-h-[3.25rem] px-1 pb-3.5 pt-3.5 text-cardTitle">
-        {project.title}
+      {/*
+        Title — held to exactly two lines. A floor alone still let a long title
+        run to three and push the block taller than its neighbours, so it is
+        clamped as well: every card's type area is now the same height.
+      */}
+      <span className="relative block min-h-[4.9375rem] px-1 pb-3.5 pt-3.5 text-cardTitle">
+        <span className="line-clamp-2">{project.title}</span>
       </span>
 
       {/* Footer bar, pinned to the bottom of an equal-height card. */}
@@ -199,8 +203,6 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
     const onScreen = new Set<string>();
 
     const measure = () => {
-      frame = 0;
-
       const middle = window.innerHeight / 2;
       const reach = window.innerHeight * CENTRE_REACH;
       let best: string | null = null;
@@ -224,8 +226,25 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
       setCentred((prev) => (prev === best ? prev : best));
     };
 
+    /**
+     * Coalesce to one measurement per frame, with a timer racing the frame.
+     * A starved tab can withhold frames indefinitely; without the timer the
+     * pending flag would never clear and the election would wedge for good.
+     */
+    let timer = 0;
+
+    const run = () => {
+      if (frame) cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
+      frame = 0;
+      timer = 0;
+      measure();
+    };
+
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(measure);
+      if (frame || timer) return;
+      frame = requestAnimationFrame(run);
+      timer = window.setTimeout(run, 120);
     };
 
     const teardown = () => {
@@ -233,7 +252,9 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
       observer = null;
       onScreen.clear();
       if (frame) cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
       frame = 0;
+      timer = 0;
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       setCentred(null);

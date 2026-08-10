@@ -14,10 +14,9 @@ export function useActiveSection(ids: readonly string[]): string | null {
 
   useEffect(() => {
     let frame = 0;
+    let timer = 0;
 
     const measure = () => {
-      frame = 0;
-
       const doc = document.documentElement;
       const atBottom = window.scrollY >= doc.scrollHeight - window.innerHeight - 2;
 
@@ -43,8 +42,19 @@ export function useActiveSection(ids: readonly string[]): string | null {
       setActive((prev) => (prev === next ? prev : next));
     };
 
+    /** A timer races the frame, so a starved tab can never wedge the throttle. */
+    const run = () => {
+      if (frame) cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
+      frame = 0;
+      timer = 0;
+      measure();
+    };
+
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(measure);
+      if (frame || timer) return;
+      frame = requestAnimationFrame(run);
+      timer = window.setTimeout(run, 120);
     };
 
     schedule();
@@ -53,6 +63,7 @@ export function useActiveSection(ids: readonly string[]): string | null {
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
     };

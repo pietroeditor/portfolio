@@ -1,8 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
-import { PaintFill } from '@/components/ui/PaintFill';
 
 /**
  * Same card anatomy as the rest of the site: a quiet glass shell, a dominant
@@ -82,35 +81,34 @@ const ROLES = [
   },
 ] as const;
 
+/**
+ * Stateless on purpose. These panes stay transparent through the hover, so
+ * everything is CSS — no re-render, and the surface behind the card is never
+ * painted over.
+ */
 function RoleCard({ icon, title, line }: { icon: ReactNode; title: string; line: string }) {
-  const [lit, setLit] = useState(false);
-
   return (
-    <div
-      onMouseEnter={() => setLit(true)}
-      onMouseLeave={() => setLit(false)}
-      className="group glass-quiet relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-500 ease-drift hover:-translate-y-1"
-    >
-      <PaintFill active={lit} />
-
+    <div className="group glass-water relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-[480ms] ease-drift hover:-translate-y-1">
       <span
-        className="relative grid h-11 w-11 place-items-center rounded-[0.75rem] text-muted transition-[color,transform] duration-[620ms] ease-drift group-hover:-translate-y-px group-hover:scale-[1.06] group-hover:text-ink"
+        className="relative z-[1] grid h-11 w-11 place-items-center rounded-[0.75rem] text-muted transition-[color,transform] duration-[480ms] ease-drift group-hover:-translate-y-px group-hover:scale-[1.06] group-hover:text-ink"
         style={{
-          background: 'rgba(255,255,255,0.5)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(10,10,11,0.05)',
+          background:
+            'linear-gradient(150deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.22) 100%)',
+          boxShadow:
+            'inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(10,10,11,0.045), 0 1px 2px rgba(10,10,11,0.03)',
         }}
       >
         {icon}
       </span>
 
-      <span className="relative block px-1 pb-3.5 pt-5 text-cardTitle">{title}</span>
+      <span className="relative z-[1] block px-1 pb-3.5 pt-5 text-cardTitle">{title}</span>
 
       {/* Pinned to the bottom with a two-line floor, so all four stay level. */}
       <p
-        className="relative mt-auto min-h-[4.375rem] rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.012em] text-muted transition-colors duration-[620ms] ease-drift"
+        className="relative z-[1] mt-auto min-h-[4.375rem] rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.012em] text-muted transition-colors duration-[480ms] ease-drift group-hover:bg-white/40"
         style={{
-          background: lit ? 'rgba(10,10,11,0.055)' : 'rgba(255,255,255,0.34)',
-          boxShadow: 'inset 0 0 0 1px rgba(10,10,11,0.05)',
+          background: 'rgba(255,255,255,0.24)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(10,10,11,0.04)',
         }}
       >
         {line}
@@ -121,9 +119,9 @@ function RoleCard({ icon, title, line }: { icon: ReactNode; title: string; line:
 
 export function WhatIDo() {
   return (
-    // Every section carries its rest on the bottom only, so the gap between
-    // any two of them is exactly one `bay`.
-    <section id="what-i-do" className="relative pb-bay pt-6">
+    // Sections rest on the bottom only. This one closes tighter than a `bay`:
+    // it reads as the lead-in to the work, so the two sit as one block.
+    <section id="what-i-do" className="relative pb-block pt-6">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.h2 variants={riseIn} className="max-w-[20ch] text-balance text-title">
