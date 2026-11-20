@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
-import { PaintFill } from '@/components/ui/PaintFill';
+import { Glow } from '@/components/ui/Glow';
+import { Reveal } from '@/components/fx/Reveal';
 import type { Project } from '@/types';
 
 /**
@@ -28,7 +29,8 @@ interface WorkGridProps {
  * thumbnail with its own radius, a runtime chip in the corner, a heavy
  * two-line title, and a full-width footer bar sitting a step off the body.
  *
- * At rest the card is almost nothing. On hover white floods up through it.
+ * At rest the card is almost nothing. On hover the rim lights and a bloom
+ * follows the cursor across it.
  */
 function Card({
   project,
@@ -44,7 +46,6 @@ function Card({
   /** Touch devices only — driven by which card is centred in the viewport. */
   autoPlay: boolean;
 }) {
-  const [lit, setLit] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   /** Tracked in a ref so a late `playing` event can't reveal a stale preview. */
   const wanted = useRef(false);
@@ -73,15 +74,11 @@ function Card({
   }, []);
 
   const enter = useCallback(() => {
-    setLit(true);
     onHover(project);
     startPreview();
   }, [onHover, project, startPreview]);
 
-  const leave = useCallback(() => {
-    setLit(false);
-    stopPreview();
-  }, [stopPreview]);
+  const leave = stopPreview;
 
   /**
    * Touch path. Runs only when this card takes the centre, and tears down when
@@ -102,16 +99,20 @@ function Card({
       onMouseLeave={leave}
       onFocus={enter}
       onBlur={leave}
-      className="group glass-quiet relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] p-3 text-left transition-transform duration-500 ease-drift hover:-translate-y-1"
+      className="group fringe glass-quiet relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] p-3 text-left transition-transform duration-500 ease-drift hover:-translate-y-1"
     >
-      <PaintFill active={lit} />
+      <Glow />
 
-      {/* Thumbnail */}
+      {/*
+        Thumbnail. Nothing is printed over it: the frame is the work, and a
+        title burned across it only hid what the visitor came to look at.
+      */}
       <span className="relative block overflow-hidden rounded-[0.875rem]">
         <img
           src={project.media.poster}
           alt={project.media.alt}
           loading={eager ? 'eager' : 'lazy'}
+          /* 16:9 — the posters are 1280x720 and any other box crops them. */
           className="aspect-video w-full scale-[1.02] object-cover transition-transform duration-[900ms] ease-drift group-hover:scale-[1.045]"
         />
         {/*
@@ -142,10 +143,10 @@ function Card({
         <span
           aria-hidden
           className="absolute inset-0 rounded-[0.875rem]"
-          style={{ boxShadow: 'inset 0 0 0 1px rgba(10,10,11,0.1)' }}
+          style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }}
         />
 
-        {/* Runtime chip */}
+        {/* Runtime, in the corner of the frame and nowhere near the type. */}
         <span className="absolute bottom-2.5 right-2.5 rounded-[0.5rem] bg-black/80 px-2.5 py-[0.3rem] text-[0.9375rem] font-bold leading-none tracking-[-0.01em] text-white backdrop-blur-md">
           {project.runtime}
         </span>
@@ -156,22 +157,22 @@ function Card({
         run to three and push the block taller than its neighbours, so it is
         clamped as well: every card's type area is now the same height.
       */}
-      <span className="relative block min-h-[4.9375rem] px-1 pb-3.5 pt-3.5 text-cardTitle">
-        <span className="line-clamp-2">{project.title}</span>
+      <span className="relative block min-h-[4.9375rem] px-1 pb-3.5 pt-3.5 text-cardTitle text-ink">
+        <span className="aberrate line-clamp-2">{project.title}</span>
       </span>
 
       {/* Footer bar, pinned to the bottom of an equal-height card. */}
       <span
-        className="relative mt-auto flex items-center justify-between gap-3 rounded-[0.75rem] px-3.5 py-3 transition-colors duration-[620ms] ease-drift"
+        className="relative mt-auto flex items-center justify-between gap-3 rounded-[0.75rem] px-3.5 py-3"
         style={{
-          background: lit ? 'rgba(10,10,11,0.055)' : 'rgba(255,255,255,0.34)',
-          boxShadow: 'inset 0 0 0 1px rgba(10,10,11,0.05)',
+          background: 'rgba(255,255,255,0.045)',
+          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.07)',
         }}
       >
         <span className="truncate text-[0.9375rem] font-semibold tracking-[-0.012em] text-muted">
           {project.format}
         </span>
-        <span className="shrink-0 text-[0.9375rem] font-bold tracking-[-0.012em] text-ink transition-transform duration-300 group-hover:translate-x-0.5">
+        <span className="shrink-0 text-[0.9375rem] font-bold tracking-[-0.012em] text-glow transition-transform duration-300 group-hover:translate-x-0.5">
           Watch
         </span>
       </span>
@@ -299,33 +300,45 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
   }, []);
 
   return (
-    <section id="work" className="relative pb-bay">
+    <section id="work" className="relative pb-bay pt-3">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-          {/* The two halves that carry the claim sit forward; the hinge recedes. */}
-          <motion.h1 variants={riseIn} className="max-w-[20ch] text-balance text-title">
-            <span className="font-semibold tracking-[-0.03em]">Six cuts</span>
-            <span className="text-muted"> that explain </span>
-            <span className="font-semibold tracking-[-0.03em]">how I think.</span>
-          </motion.h1>
+          {/* The two halves that carry the claim are lit; the hinge recedes. */}
+          <motion.div variants={riseIn}>
+            <span className="eyebrow">Selected work</span>
+            <h1 className="mt-5 max-w-[20ch] text-balance font-serif text-title">
+              <span className="lit">Six cuts</span>
+              <span> that explain </span>
+              <span className="lit">how I think.</span>
+            </h1>
+          </motion.div>
 
-          <div className="mt-block grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-block grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-8">
             {projects.map((project, i) => (
-              <motion.article
+              <article
                 key={project.id}
-                variants={riseIn}
                 ref={register(project.id)}
                 data-project-id={project.id}
                 className="h-full"
               >
-                <Card
-                  project={project}
-                  eager={i < 3}
-                  onOpen={onOpen}
-                  onHover={onHover}
-                  autoPlay={centred === project.id}
-                />
-              </motion.article>
+                {/*
+                  Three transforms, one element each: the entrance, the scroll
+                  depth, and the card. Stack any two on one node and one wins
+                  silently — which is exactly how the depth field spent its
+                  first few revisions doing nothing at all.
+                */}
+                <Reveal delay={i * 70} className="h-full">
+                  <div data-depth className="depth-item h-full">
+                    <Card
+                      project={project}
+                      eager={i < 3}
+                      onOpen={onOpen}
+                      onHover={onHover}
+                      autoPlay={centred === project.id}
+                    />
+                  </div>
+                </Reveal>
+              </article>
             ))}
           </div>
         </motion.div>

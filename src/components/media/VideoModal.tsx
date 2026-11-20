@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 import { HOLD, transitions } from '@/lib/motion';
+import { lockScroll } from '@/lib/scrollLock';
 import type { Project } from '@/types';
 
 interface VideoModalProps {
@@ -44,14 +45,9 @@ export function VideoModal({ project, onClose }: VideoModalProps) {
 
   useEffect(() => {
     if (!open) return;
-    const { documentElement: html, body } = document;
-    const prev = { h: html.style.overflow, b: body.style.overflow };
-    html.style.overflow = 'hidden';
-    body.style.overflow = 'hidden';
-    return () => {
-      html.style.overflow = prev.h;
-      body.style.overflow = prev.b;
-    };
+    // Counted, because the intro can still be holding the page: a card click
+    // skips the intro and opens this in the same gesture.
+    return lockScroll();
   }, [open]);
 
   useEffect(() => {
@@ -104,7 +100,7 @@ export function VideoModal({ project, onClose }: VideoModalProps) {
           <motion.div
             aria-hidden
             onClick={backdrop}
-            className="absolute inset-0 bg-desk/[0.72] backdrop-blur-2xl"
+            className="absolute inset-0 bg-black/[0.86] backdrop-blur-2xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: transitions.cutOut }}
@@ -116,7 +112,7 @@ export function VideoModal({ project, onClose }: VideoModalProps) {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'radial-gradient(46% 40% at 50% 46%, rgb(var(--accent) / 0.26) 0%, rgb(var(--accent) / 0.07) 46%, transparent 74%)',
+                'radial-gradient(46% 40% at 50% 46%, rgb(var(--accent) / 0.2) 0%, rgb(var(--accent) / 0.06) 46%, transparent 74%)',
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -150,7 +146,7 @@ export function VideoModal({ project, onClose }: VideoModalProps) {
               className="relative aspect-video w-full overflow-hidden rounded-card bg-black"
               style={{
                 boxShadow:
-                  '0 0 0 1px rgba(10,10,11,0.1), 0 0 100px -24px rgb(var(--accent) / 0.55), 0 30px 60px -30px rgba(10,10,11,0.4), 0 70px 120px -60px rgba(10,10,11,0.5)',
+                  '0 0 0 1px rgba(255,255,255,0.1), 0 0 120px -20px rgb(var(--accent) / 0.6), 0 30px 60px -30px rgba(0,0,0,0.8), 0 70px 120px -60px rgba(0,0,0,0.9)',
               }}
             >
               <iframe
@@ -164,7 +160,9 @@ export function VideoModal({ project, onClose }: VideoModalProps) {
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-cardTitle">{project.title}</span>
+              <span className="font-serif text-[clamp(1.25rem,2vw,1.75rem)] leading-tight tracking-[-0.02em]">
+                {project.title}
+              </span>
               <span aria-hidden className="h-3 w-px bg-line" />
               <span className="text-meta font-medium text-muted">{project.format}</span>
               <span aria-hidden className="h-3 w-px bg-line" />

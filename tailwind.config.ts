@@ -5,54 +5,61 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /** The desk the object rests on. */
-        desk: '#DCDDE2',
-        /** The object itself — held below the cards so glass reads as glass. */
-        shell: '#EBECF0',
-        panel: '#FCFCFD',
-        line: 'rgba(10,10,11,0.09)',
-        lineSoft: 'rgba(10,10,11,0.055)',
-        ink: '#0A0A0B',
-        muted: '#6E7076',
-        soft: '#9A9CA3',
-        faint: '#BFC1C7',
+        /** The void the object rests in. */
+        desk: '#000000',
+        /** The object itself — a shade off black so its edge is readable. */
+        shell: '#08090C',
+        panel: '#0E1014',
+        line: 'rgba(255,255,255,0.11)',
+        lineSoft: 'rgba(255,255,255,0.06)',
+        ink: '#FFFFFF',
+        muted: '#A6ABB8',
+        soft: '#8A909E',
+        faint: '#6B7280',
+        /** The one accent. Everything that needs to carry reads in this. */
+        glow: '#73C6FE',
+        glowDeep: '#1D4ED8',
         signal: '#FF3B18',
       },
-      /** Apple system stack only. No webfonts anywhere on the site. */
       fontFamily: {
+        /** UI and body. */
         sans: [
+          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Display"',
           '"SF Pro Text"',
           '"Helvetica Neue"',
           'Helvetica',
           'Arial',
           'sans-serif',
         ],
+        /** Display only — the high-contrast serif the whole look rests on. */
+        serif: ['"Instrument Serif"', 'ui-serif', '"Times New Roman"', 'Georgia', 'serif'],
       },
       fontSize: {
         display: [
-          'clamp(2.5rem, 6.4vw, 6rem)',
-          { lineHeight: '1.02', letterSpacing: '-0.028em', fontWeight: '400' },
+          'clamp(2.75rem, 7vw, 6.5rem)',
+          { lineHeight: '0.98', letterSpacing: '-0.025em', fontWeight: '400' },
         ],
         title: [
-          'clamp(1.75rem, 3.6vw, 3.25rem)',
-          { lineHeight: '1.06', letterSpacing: '-0.024em', fontWeight: '400' },
+          'clamp(2.125rem, 4.6vw, 4rem)',
+          { lineHeight: '1.02', letterSpacing: '-0.024em', fontWeight: '400' },
         ],
         heading: [
           'clamp(1.125rem, 1.6vw, 1.5rem)',
           { lineHeight: '1.24', letterSpacing: '-0.018em', fontWeight: '500' },
         ],
-        /** Card title — the reference sets it heavy, tight and large. */
+        /** Card title — sans, tight and heavy against the serif headings. */
         cardTitle: [
           'clamp(1.0625rem, 1.35vw, 1.3125rem)',
-          { lineHeight: '1.22', letterSpacing: '-0.021em', fontWeight: '700' },
+          { lineHeight: '1.22', letterSpacing: '-0.021em', fontWeight: '600' },
         ],
-        lead: ['1.0625rem', { lineHeight: '1.58', letterSpacing: '-0.014em' }],
-        body: ['0.9375rem', { lineHeight: '1.62', letterSpacing: '-0.01em' }],
-        meta: ['0.8125rem', { lineHeight: '1.2', letterSpacing: '-0.006em' }],
-        micro: ['0.75rem', { lineHeight: '1.2', letterSpacing: '-0.004em' }],
+        lead: ['1.0625rem', { lineHeight: '1.58', letterSpacing: '-0.011em' }],
+        body: ['0.9375rem', { lineHeight: '1.62', letterSpacing: '-0.008em' }],
+        meta: ['0.8125rem', { lineHeight: '1.2', letterSpacing: '-0.004em' }],
+        micro: ['0.75rem', { lineHeight: '1.2', letterSpacing: '0.002em' }],
+        /** All-caps section marker, the way the reference labels its blocks. */
+        eyebrow: ['0.6875rem', { lineHeight: '1.2', letterSpacing: '0.16em', fontWeight: '500' }],
       },
       spacing: {
         /**
@@ -80,24 +87,20 @@ const config: Config = {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%': { opacity: '0.3', transform: 'scale(0.7)' },
         },
-        /**
-         * A showcase turn, not a spin. The sweep is bounded so three faces
-         * stay visible at every moment — a full rotation flattens the block
-         * to a single face twice per cycle, which is what kills the volume.
-         */
-        showcase: {
-          '0%, 100%': { transform: 'rotateX(-26deg) rotateY(26deg)' },
-          '50%': { transform: 'rotateX(-16deg) rotateY(64deg)' },
-        },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
         },
+        /** The aurora breathing behind everything. */
+        drift: {
+          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1)', opacity: '0.85' },
+          '50%': { transform: 'translate3d(4%,-3%,0) scale(1.12)', opacity: '1' },
+        },
       },
       animation: {
         'signal-pulse': 'signal-pulse 2.4s cubic-bezier(0.4,0,0.6,1) infinite',
-        showcase: 'showcase 16s cubic-bezier(0.42,0,0.58,1) infinite',
         float: 'float 7s ease-in-out infinite',
+        drift: 'drift 18s cubic-bezier(0.42,0,0.58,1) infinite',
       },
     },
   },

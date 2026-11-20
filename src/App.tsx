@@ -4,12 +4,14 @@ import { featuredProjects } from '@/data/projects';
 import { site } from '@/data/site';
 
 import { useAccent } from '@/hooks/useAccent';
+import { useView } from '@/hooks/useView';
 import { Shell, Backdrop } from '@/components/layout/Shell';
-import { Header } from '@/components/layout/Header';
+import { Dock } from '@/components/layout/Dock';
+import { Boot } from '@/components/boot/Boot';
+import { DepthField } from '@/components/fx/DepthField';
 import { WhatIDo } from '@/components/sections/WhatIDo';
-import { LiquidReveal } from '@/components/ui/LiquidReveal';
 import { WorkGrid } from '@/components/work/WorkGrid';
-import { Worlds } from '@/components/sections/Worlds';
+import { AiSkills } from '@/components/sections/AiSkills';
 import { Contact } from '@/components/sections/Contact';
 import { VideoModal } from '@/components/media/VideoModal';
 import type { Project } from '@/types';
@@ -17,6 +19,8 @@ import type { Project } from '@/types';
 export default function App() {
   const [accentSource, setAccentSource] = useState<Project>(featuredProjects[0]);
   const [playing, setPlaying] = useState<Project | null>(null);
+  const [booted, setBooted] = useState(false);
+  const [view, go] = useView();
 
   useAccent((playing ?? accentSource).accent);
 
@@ -24,6 +28,8 @@ export default function App() {
     if (!project.youtubeId) return;
     setPlaying(project);
   }, []);
+
+  const handleBooted = useCallback(() => setBooted(true), []);
 
   return (
     <>
@@ -36,29 +42,46 @@ export default function App() {
 
       <Backdrop />
 
-      <main
-        id="top"
-        className="relative z-10"
-        style={{ paddingLeft: 'var(--frame)', paddingRight: 'var(--frame)' }}
-      >
-        <Header site={site} />
+      {/*
+        One depth field over the whole page: each pane marked `data-depth`
+        inside it bows away from the reading line as you scroll, so the site
+        reads as one curved surface instead of a stack of flat lists.
+      */}
+      <DepthField>
+        {/*
+          No bar at the top any more: the dock at the foot of the screen is
+          the whole navigation, so the page opens straight on the work.
+        */}
+        <main
+          id="top"
+          className="relative z-10 pt-gutter"
+          style={{ paddingLeft: 'var(--frame)', paddingRight: 'var(--frame)' }}
+        >
+          {/*
+            One page, four sections, in the order the nav lists them — the
+            nav and the dock mark where you are and scroll you there.
+          */}
+          <WorkGrid projects={featuredProjects} onOpen={handleOpen} onHover={setAccentSource} />
 
-        <WhatIDo />
+          <AiSkills />
 
-        <WorkGrid projects={featuredProjects} onOpen={handleOpen} onHover={setAccentSource} />
+          <WhatIDo />
 
-        <LiquidReveal>
-          <Worlds />
-        </LiquidReveal>
-
-        <LiquidReveal>
           <Contact site={site} />
-        </LiquidReveal>
-      </main>
+
+          {/* Room for the dock to float clear of the last row. */}
+          <div aria-hidden className="h-24" />
+        </main>
+      </DepthField>
 
       <Shell />
 
+      {/* Held back until the tube has handed the screen over. */}
+      {booted && <Dock view={view} onGo={go} />}
+
       <VideoModal project={playing} onClose={() => setPlaying(null)} />
+
+      <Boot onDone={handleBooted} />
     </>
   );
 }

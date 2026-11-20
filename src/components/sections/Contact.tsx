@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
-import { PaintFill } from '@/components/ui/PaintFill';
+import { Glow } from '@/components/ui/Glow';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { SiteConfig } from '@/types';
 
@@ -19,15 +18,9 @@ function MethodCard({
   copied: boolean;
   onCopy: () => void;
 }) {
-  const [lit, setLit] = useState(false);
-
   return (
-    <div
-      onMouseEnter={() => setLit(true)}
-      onMouseLeave={() => setLit(false)}
-      className="group glass-quiet relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-500 ease-drift hover:-translate-y-1"
-    >
-      <PaintFill active={lit} />
+    <div className="group glass-quiet relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-500 ease-drift hover:-translate-y-1">
+      <Glow />
 
       <div className="relative flex items-center justify-between gap-4 px-1 pt-1">
         <span className="text-[0.9375rem] font-semibold tracking-[-0.012em] text-muted">
@@ -36,7 +29,7 @@ function MethodCard({
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-full border border-line px-3 py-1.5 text-micro font-semibold text-muted transition-colors duration-200 hover:border-ink/30 hover:text-ink"
+          className="relative z-[1] rounded-full border border-line px-3 py-1.5 text-micro font-semibold text-muted transition-colors duration-200 hover:border-glow/50 hover:text-ink"
         >
           {copied ? 'Copied' : 'Copy'}
         </button>
@@ -72,9 +65,8 @@ export function Contact({ site }: { site: SiteConfig }) {
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.div variants={riseIn}>
             {/* Same rank as every other section heading — the page ends level. */}
-            <h2 className="max-w-[16ch] text-balance text-title font-semibold tracking-[-0.03em]">
-              Contact
-            </h2>
+            <span className="eyebrow">Get in touch</span>
+            <h2 className="mt-5 max-w-[16ch] text-balance font-serif text-title">Contact</h2>
             <p className="mt-5 max-w-prose text-pretty text-lead text-muted">
               Reach out if you'd like to work together.
             </p>
@@ -82,14 +74,15 @@ export function Contact({ site }: { site: SiteConfig }) {
 
           <motion.div variants={riseIn} className="mt-block grid gap-5 md:grid-cols-2">
             {methods.map((m) => (
-              <MethodCard
-                key={m.label}
-                label={m.label}
-                value={m.value}
-                href={m.href}
-                copied={copied}
-                onCopy={() => void copy(m.value)}
-              />
+              <div key={m.label} data-depth className="depth-item h-full">
+                <MethodCard
+                  label={m.label}
+                  value={m.value}
+                  href={m.href}
+                  copied={copied}
+                  onCopy={() => void copy(m.value)}
+                />
+              </div>
             ))}
           </motion.div>
 

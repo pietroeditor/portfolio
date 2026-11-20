@@ -18,12 +18,16 @@ interface Body {
   hue: [number, number, number];
 }
 
+/**
+ * Cold only. On black these read as the aurora moving rather than as blobs
+ * of colour, which is the whole point — a warm body here looks like a bug.
+ */
 const PALETTE: [number, number, number][] = [
-  [126, 178, 214],
-  [168, 156, 214],
-  [214, 168, 150],
-  [140, 198, 190],
-  [196, 186, 226],
+  [86, 150, 255],
+  [122, 108, 255],
+  [115, 198, 254],
+  [64, 96, 220],
+  [168, 205, 255],
 ];
 
 export function Liquid() {
@@ -103,8 +107,8 @@ export function Liquid() {
 
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
         const [r, gg, bl] = b.hue;
-        g.addColorStop(0, `rgba(${r},${gg},${bl},0.5)`);
-        g.addColorStop(0.55, `rgba(${r},${gg},${bl},0.16)`);
+        g.addColorStop(0, `rgba(${r},${gg},${bl},0.32)`);
+        g.addColorStop(0.55, `rgba(${r},${gg},${bl},0.1)`);
         g.addColorStop(1, `rgba(${r},${gg},${bl},0)`);
 
         ctx.fillStyle = g;
@@ -130,7 +134,7 @@ export function Liquid() {
       ref={canvasRef}
       aria-hidden
       className="absolute inset-0 h-full w-full"
-      style={{ filter: 'blur(58px) saturate(1.25)', opacity: 0.85 }}
+      style={{ filter: 'blur(64px) saturate(1.35)', opacity: 0.7 }}
     />
   );
 }

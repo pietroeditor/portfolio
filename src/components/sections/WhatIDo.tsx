@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 import { riseIn, stagger, viewportOnce } from '@/lib/motion';
+import { Glow } from '@/components/ui/Glow';
 
 /**
  * Same card anatomy as the rest of the site: a quiet glass shell, a dominant
@@ -89,13 +90,15 @@ const ROLES = [
 function RoleCard({ icon, title, line }: { icon: ReactNode; title: string; line: string }) {
   return (
     <div className="group glass-water relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-3 transition-transform duration-[480ms] ease-drift hover:-translate-y-1">
+      <Glow />
+
       <span
-        className="relative z-[1] grid h-11 w-11 place-items-center rounded-[0.75rem] text-muted transition-[color,transform] duration-[480ms] ease-drift group-hover:-translate-y-px group-hover:scale-[1.06] group-hover:text-ink"
+        className="relative z-[1] grid h-11 w-11 place-items-center rounded-[0.75rem] text-soft transition-[color,transform] duration-[480ms] ease-drift group-hover:-translate-y-px group-hover:scale-[1.06] group-hover:text-glow"
         style={{
           background:
-            'linear-gradient(150deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.22) 100%)',
+            'linear-gradient(150deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%)',
           boxShadow:
-            'inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(10,10,11,0.045), 0 1px 2px rgba(10,10,11,0.03)',
+            'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 0 0 1px rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.4)',
         }}
       >
         {icon}
@@ -105,10 +108,10 @@ function RoleCard({ icon, title, line }: { icon: ReactNode; title: string; line:
 
       {/* Pinned to the bottom with a two-line floor, so all four stay level. */}
       <p
-        className="relative z-[1] mt-auto min-h-[4.375rem] rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.012em] text-muted transition-colors duration-[480ms] ease-drift group-hover:bg-white/40"
+        className="relative z-[1] mt-auto min-h-[4.375rem] rounded-[0.75rem] px-3.5 py-3 text-pretty text-[0.9375rem] font-medium leading-[1.5] tracking-[-0.01em] text-muted transition-colors duration-[480ms] ease-drift group-hover:bg-white/[0.07]"
         style={{
-          background: 'rgba(255,255,255,0.24)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(10,10,11,0.04)',
+          background: 'rgba(255,255,255,0.035)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.055)',
         }}
       >
         {line}
@@ -121,17 +124,22 @@ export function WhatIDo() {
   return (
     // Sections rest on the bottom only. This one closes tighter than a `bay`:
     // it reads as the lead-in to the work, so the two sit as one block.
-    <section id="what-i-do" className="relative pb-block pt-6">
+    <section id="about" className="relative pb-bay">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-          <motion.h2 variants={riseIn} className="max-w-[20ch] text-balance text-title">
-            What I do.
-          </motion.h2>
+          <motion.div variants={riseIn}>
+            <span className="eyebrow">Capabilities</span>
+            <h2 className="mt-5 max-w-[20ch] text-balance font-serif text-title">
+              What I <span className="lit">do</span>.
+            </h2>
+          </motion.div>
 
           <div className="mt-block grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {ROLES.map(({ key, icon, title, line }) => (
               <motion.div key={key} variants={riseIn} className="h-full">
-                <RoleCard icon={icon} title={title} line={line} />
+                <div data-depth className="depth-item h-full">
+                  <RoleCard icon={icon} title={title} line={line} />
+                </div>
               </motion.div>
             ))}
           </div>

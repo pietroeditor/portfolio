@@ -2,11 +2,152 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Registered so the orbit angle can actually be interpolated — an unregistered
+ * custom property is a string and animates in jumps. Where this is unsupported
+ * the conic gradient simply renders at its initial angle, which is a static
+ * arc of light rather than a broken ring.
+ */
+@property --ring-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Registered so the hover tilt can ease back to rest instead of snapping. */
+@property --tx {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --ty {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Panes arrive from behind the screen, not from below it. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: perspective(900px) translate3d(0, 44px, -320px) rotateX(13deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) translate3d(0, 0, 0) rotateX(0deg);
+  }
+}
+
+/* The sound button when the browser has refused to let the clip speak. */
+@keyframes beg-for-sound {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(115, 198, 254, 0.55),
+      0 0 0 0 rgba(115, 198, 254, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(150, 214, 255, 0.9),
+      0 0 26px 6px rgba(115, 198, 254, 0.42);
+  }
+}
+
+@keyframes ring-orbit {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+@keyframes ring-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* The gun warming: a seam of light opening across a dead tube. */
+@keyframes boot-seam {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes boot-bloom {
+  0% {
+    transform: scaleY(0.004);
+    filter: brightness(2.6);
+  }
+  60% {
+    filter: brightness(1.4);
+  }
+  100% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+}
+
+/* Power cut: the image collapses to a seam, then a point, then nothing. */
+@keyframes boot-collapse {
+  0% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+  }
+  42% {
+    transform: scaleY(0.004) scaleX(1);
+    filter: brightness(3.2);
+  }
+  78% {
+    transform: scaleY(0.004) scaleX(0.02);
+    filter: brightness(4);
+  }
+  100% {
+    transform: scaleY(0.004) scaleX(0);
+    filter: brightness(0);
+  }
+}
+
+@keyframes type-in {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The sweep that travels across polished metal. */
+@keyframes chrome-sweep {
+  to {
+    background-position:
+      200% 0,
+      0 0;
+  }
+}
+
 @layer base {
   :root {
     --glass-blur: 20px;
-    /* Set live from the active project. */
-    --accent: 62 176 204;
+    /* Set live from whatever is currently on screen. */
+    --accent: 115 198 254;
     --frame: 0px;
     --shell-radius: 0px;
   }
@@ -31,8 +172,9 @@
 
   html {
     scrollbar-gutter: stable;
-    background: #dcdde2;
+    background: #000000;
     scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -43,61 +185,85 @@
 
   body {
     @apply text-ink font-sans antialiased;
-    background: #dcdde2;
+    background: #000000;
     font-optical-sizing: auto;
     font-synthesis-weight: none;
     font-variant-numeric: tabular-nums;
     overflow-x: clip;
   }
 
+  /*
+   * The nav is sticky, so an anchor jump would otherwise park a heading
+   * underneath it. Every section keeps the bar's height clear above itself.
+   */
+  section[id] {
+    /* No bar overhead any more — just enough air to not touch the edge. */
+    scroll-margin-top: 2.5rem;
+  }
+
   ::selection {
-    background: rgba(10, 10, 11, 0.9);
-    color: #f7f7f8;
+    background: rgba(115, 198, 254, 0.32);
+    color: #ffffff;
   }
 
   :focus-visible {
-    @apply outline-none ring-[1.5px] ring-ink/60 ring-offset-2 ring-offset-shell;
+    @apply outline-none ring-[1.5px] ring-glow/70 ring-offset-2 ring-offset-shell;
     border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border: 3px solid #000;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.26);
   }
 }
 
 @layer components {
   /*
-   * Liquid Glass, light edition. A pane of real glass over a bright surface:
-   * light pools at the top edge, the body stays near-clear, and the underside
-   * carries a faint shadow so the pane has thickness.
+   * Liquid Glass, dark edition. A pane of smoked glass lit from above: the
+   * top edge catches the key, the body stays near-clear so the aurora behind
+   * it still reads through, and the underside carries a shadow for thickness.
    */
   .glass {
     position: relative;
     background:
       radial-gradient(
         130% 100% at 14% 0%,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(255, 255, 255, 0.6) 40%,
-        rgba(255, 255, 255, 0.35) 72%
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.06) 42%,
+        rgba(255, 255, 255, 0.03) 74%
       ),
       linear-gradient(
         168deg,
-        rgba(255, 255, 255, 0.94) 0%,
-        rgba(255, 255, 255, 0.72) 48%,
-        rgba(255, 255, 255, 0.84) 100%
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.035) 50%,
+        rgba(255, 255, 255, 0.06) 100%
       );
-    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 1) inset,
-      0 -1px 0 0 rgba(10, 10, 11, 0.05) inset,
-      0 -8px 16px -14px rgba(10, 10, 11, 0.22) inset,
-      0 0 0 0.5px rgba(10, 10, 11, 0.05),
-      0 1px 2px rgba(10, 10, 11, 0.04),
-      0 10px 24px -14px rgba(10, 10, 11, 0.16),
-      0 30px 60px -34px rgba(10, 10, 11, 0.24);
+      0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.5) inset,
+      0 -8px 16px -14px rgba(0, 0, 0, 0.8) inset,
+      0 1px 2px rgba(0, 0, 0, 0.5),
+      0 10px 24px -14px rgba(0, 0, 0, 0.7),
+      0 30px 60px -34px rgba(0, 0, 0, 0.9);
   }
 
   /*
    * Resting state for anything that floods on hover: almost nothing. A rim,
-   * a whisper of tint, and enough blur that the liquid behind it bends.
+   * a whisper of tint, and enough blur that the aurora behind it bends.
    */
   .glass-quiet {
     position: relative;
@@ -105,50 +271,49 @@
       /* light pooling at the top-left corner, the way a lens catches a key */
       radial-gradient(
         120% 90% at 14% 0%,
-        rgba(255, 255, 255, 0.34) 0%,
-        rgba(255, 255, 255, 0.08) 46%,
-        rgba(255, 255, 255, 0) 74%
+        rgba(255, 255, 255, 0.09) 0%,
+        rgba(255, 255, 255, 0.03) 48%,
+        rgba(255, 255, 255, 0) 76%
       ),
       linear-gradient(
         168deg,
-        rgba(255, 255, 255, 0.2) 0%,
-        rgba(255, 255, 255, 0.07) 48%,
-        rgba(255, 255, 255, 0.15) 100%
+        rgba(255, 255, 255, 0.055) 0%,
+        rgba(255, 255, 255, 0.02) 50%,
+        rgba(255, 255, 255, 0.04) 100%
       );
-    backdrop-filter: blur(14px) saturate(152%);
-    -webkit-backdrop-filter: blur(14px) saturate(152%);
-    border: 1px solid rgba(255, 255, 255, 0.58);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
     box-shadow:
       /* leading edge, then the slab's own underside */
-      0 1px 0 0 rgba(255, 255, 255, 0.72) inset,
-      0 -1px 0 0 rgba(10, 10, 11, 0.035) inset,
-      0 0 0 0.5px rgba(10, 10, 11, 0.04),
-      0 1px 2px rgba(10, 10, 11, 0.03),
-      0 10px 22px -16px rgba(10, 10, 11, 0.18);
+      0 1px 0 0 rgba(255, 255, 255, 0.12) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.45) inset,
+      0 1px 2px rgba(0, 0, 0, 0.4),
+      0 10px 22px -16px rgba(0, 0, 0, 0.75);
     transition:
       box-shadow 620ms cubic-bezier(0.22, 1, 0.36, 1),
       border-color 620ms cubic-bezier(0.22, 1, 0.36, 1),
       backdrop-filter 620ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* Hover clears the glass a little and lifts the cast shadow. */
+  /* Hover clears the glass and lets the accent catch on the rim. */
   .glass-quiet:hover,
   .glass-quiet:focus-within {
-    border-color: rgba(255, 255, 255, 0.96);
+    border-color: rgba(115, 198, 254, 0.42);
     backdrop-filter: blur(17px) saturate(168%);
     -webkit-backdrop-filter: blur(17px) saturate(168%);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 1) inset,
-      0 -1px 0 0 rgba(10, 10, 11, 0.045) inset,
-      0 0 0 0.5px rgba(10, 10, 11, 0.06),
-      0 2px 6px rgba(10, 10, 11, 0.06),
-      0 26px 52px -24px rgba(10, 10, 11, 0.3);
+      0 1px 0 0 rgba(255, 255, 255, 0.2) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.5) inset,
+      0 2px 6px rgba(0, 0, 0, 0.5),
+      0 26px 52px -24px rgba(0, 0, 0, 0.9),
+      0 0 64px -26px rgba(115, 198, 254, 0.55);
   }
 
   /*
-   * Water glass. Clearer than `.glass-quiet` — the surface behind it stays
-   * readable — with a gloss band across the upper third, a soft reflection
-   * pooling in the lower half, and a rim that lightens toward the key.
+   * Water glass. Clearer than the quiet pane — whatever sits behind it stays
+   * readable — with a gloss band across the upper third and a cool bounce
+   * pooling at the foot.
    */
   .glass-water {
     position: relative;
@@ -156,33 +321,32 @@
       /* the highlight where the key strikes the pane */
       linear-gradient(
         142deg,
-        rgba(255, 255, 255, 0.42) 0%,
-        rgba(255, 255, 255, 0.12) 22%,
-        rgba(255, 255, 255, 0) 44%
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.04) 24%,
+        rgba(255, 255, 255, 0) 46%
       ),
       /* light bouncing back up off whatever is beneath */
         linear-gradient(
           0deg,
-          rgba(255, 255, 255, 0.22) 0%,
-          rgba(255, 255, 255, 0.04) 34%,
-          rgba(255, 255, 255, 0) 60%
+          rgba(115, 198, 254, 0.08) 0%,
+          rgba(255, 255, 255, 0.015) 36%,
+          rgba(255, 255, 255, 0) 62%
         ),
       linear-gradient(
         168deg,
-        rgba(255, 255, 255, 0.14) 0%,
-        rgba(255, 255, 255, 0.03) 52%,
-        rgba(255, 255, 255, 0.1) 100%
+        rgba(255, 255, 255, 0.045) 0%,
+        rgba(255, 255, 255, 0.015) 54%,
+        rgba(255, 255, 255, 0.035) 100%
       );
-    backdrop-filter: blur(11px) saturate(158%) brightness(1.03);
-    -webkit-backdrop-filter: blur(11px) saturate(158%) brightness(1.03);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(11px) saturate(156%);
+    -webkit-backdrop-filter: blur(11px) saturate(156%);
+    border: 1px solid rgba(255, 255, 255, 0.085);
     box-shadow:
       /* leading edge, then the pane's own thickness */
-      0 1px 0 0 rgba(255, 255, 255, 0.85) inset,
-      0 -1px 0 0 rgba(10, 10, 11, 0.05) inset,
-      0 0 0 0.5px rgba(10, 10, 11, 0.035),
-      0 1px 2px rgba(10, 10, 11, 0.025),
-      0 12px 26px -18px rgba(10, 10, 11, 0.16);
+      0 1px 0 0 rgba(255, 255, 255, 0.14) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.45) inset,
+      0 1px 2px rgba(0, 0, 0, 0.35),
+      0 12px 26px -18px rgba(0, 0, 0, 0.7);
     transition:
       box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1),
       border-color 480ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -199,27 +363,105 @@
     background: linear-gradient(
       108deg,
       rgba(255, 255, 255, 0) 26%,
-      rgba(255, 255, 255, 0.3) 42%,
+      rgba(255, 255, 255, 0.075) 42%,
       rgba(255, 255, 255, 0) 58%
     );
-    opacity: 0.5;
+    opacity: 0.6;
     transition: opacity 480ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .glass-water:hover {
-    border-color: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(13px) saturate(172%) brightness(1.05);
-    -webkit-backdrop-filter: blur(13px) saturate(172%) brightness(1.05);
+    border-color: rgba(115, 198, 254, 0.34);
+    backdrop-filter: blur(13px) saturate(170%);
+    -webkit-backdrop-filter: blur(13px) saturate(170%);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 1) inset,
-      0 -1px 0 0 rgba(10, 10, 11, 0.055) inset,
-      0 0 0 0.5px rgba(10, 10, 11, 0.05),
-      0 2px 6px rgba(10, 10, 11, 0.05),
-      0 26px 50px -24px rgba(10, 10, 11, 0.26);
+      0 1px 0 0 rgba(255, 255, 255, 0.2) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.5) inset,
+      0 2px 6px rgba(0, 0, 0, 0.45),
+      0 26px 50px -24px rgba(0, 0, 0, 0.85),
+      0 0 54px -28px rgba(115, 198, 254, 0.45);
   }
 
   .glass-water:hover::after {
-    opacity: 0.9;
+    opacity: 1;
+  }
+
+  /*
+   * The bar. It is sticky, so unlike every other pane on the site it has to
+   * actually occlude: a clear pane only blurs what passes under it, and 64px
+   * display type survives a 20px blur perfectly legibly. It carries a dark
+   * base of its own and the glass sits on top of that.
+   */
+  .glass-nav {
+    position: relative;
+    background:
+      radial-gradient(
+        130% 100% at 14% 0%,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.045) 44%,
+        rgba(255, 255, 255, 0.02) 76%
+      ),
+      linear-gradient(rgba(10, 11, 15, 0.88), rgba(8, 9, 12, 0.92));
+    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.16) inset,
+      0 -1px 0 0 rgba(0, 0, 0, 0.6) inset,
+      0 1px 2px rgba(0, 0, 0, 0.6),
+      0 16px 40px -20px rgba(0, 0, 0, 0.9);
+  }
+
+  /*
+   * Hover glow, after the reference.
+   *
+   * Two layers, both pure opacity transitions so they stay on the compositor:
+   * a rim that lights along the top edge and falls off around the sides, and
+   * a bloom that tracks the cursor across the face of the pane. Nothing moves
+   * and nothing is masked — the old droplet flood is gone entirely.
+   */
+  .glow-rim {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      180deg,
+      rgba(205, 234, 255, 0.95) 0%,
+      rgba(115, 198, 254, 0.5) 16%,
+      rgba(115, 198, 254, 0.12) 44%,
+      rgba(115, 198, 254, 0) 72%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .glow-bloom {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      15rem circle at var(--gx, 50%) var(--gy, 0%),
+      rgba(115, 198, 254, 0.18) 0%,
+      rgba(115, 198, 254, 0.05) 38%,
+      transparent 68%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .group:hover > .glow-rim,
+  .group:focus-within > .glow-rim,
+  .group:hover > .glow-bloom,
+  .group:focus-within > .glow-bloom {
+    opacity: 1;
   }
 
   /* The specular rim that reads as a machined edge. */
@@ -231,10 +473,10 @@
     padding: 1px;
     background: linear-gradient(
       150deg,
-      rgba(255, 255, 255, 1),
+      rgba(255, 255, 255, 0.55),
       rgba(255, 255, 255, 0) 34%,
       rgba(255, 255, 255, 0) 62%,
-      rgba(255, 255, 255, 0.75)
+      rgba(255, 255, 255, 0.3)
     );
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
@@ -244,66 +486,159 @@
     pointer-events: none;
   }
 
-  /* Dispersive fringe — the iridescent edge of thick glass. */
-  .prism::after {
+  /* The site is one object floating in the dark. Its edge stays visible. */
+  .shell-frame {
+    border-radius: var(--shell-radius);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+      0 1px 0 0 rgba(255, 255, 255, 0.16) inset,
+      0 0 0 1px rgba(0, 0, 0, 0.9),
+      0 24px 50px -26px rgba(0, 0, 0, 1),
+      0 70px 150px -50px rgba(115, 198, 254, 0.22);
+  }
+
+  /*
+   * The marker that labels a block, the way the reference tags its sections:
+   * a lit dot in the accent, then small tracked-out caps.
+   */
+  .eyebrow {
+    @apply inline-flex items-center gap-2.5 text-eyebrow uppercase text-soft;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgb(var(--accent));
+    box-shadow: 0 0 10px 1px rgb(var(--accent) / 0.85);
+    flex: none;
+  }
+
+  /*
+   * The AI tab. A point of light runs the perimeter continuously and a halo
+   * breathes under it, so the one nav item that is new reads as new without
+   * being louder than the bar it sits in.
+   */
+  /* At rest it still reads as a chip, so the tab is marked even mid-orbit. */
+  .ai-ring {
+    background:
+      linear-gradient(180deg, rgba(115, 198, 254, 0.16) 0%, rgba(115, 198, 254, 0.05) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(115, 198, 254, 0.24),
+      inset 0 1px 0 rgba(205, 234, 255, 0.35);
+  }
+
+  .ai-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 999px;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--ring-angle),
+      rgba(115, 198, 254, 0) 0deg,
+      rgba(115, 198, 254, 0.2) 30deg,
+      rgba(150, 214, 255, 0.95) 66deg,
+      #ffffff 90deg,
+      rgba(150, 214, 255, 0.95) 114deg,
+      rgba(115, 198, 254, 0.2) 150deg,
+      rgba(115, 198, 254, 0) 186deg,
+      rgba(115, 198, 254, 0) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: ring-orbit 3.4s linear infinite;
+    pointer-events: none;
+  }
+
+  /* The halo the ring sits in. Kept behind the label, never over it. */
+  .ai-ring::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+    background: radial-gradient(closest-side, rgba(115, 198, 254, 0.6) 0%, transparent 74%);
+    filter: blur(7px);
+    animation: ring-breathe 3.4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /*
+   * The Opus 5 plate. The same point of light running the same perimeter as
+   * the AI tab, at the size of a box — so the claim about the tool is marked
+   * by the device that marked the tab you clicked to get here. Slower, since
+   * a long perimeter at the tab's speed reads as a spinner.
+   *
+   * The pseudo-elements take `border-radius: inherit`, so the plate can be
+   * given any radius by the markup and the ring follows it.
+   */
+  .opus-plate {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(
+      145deg,
+      rgba(115, 198, 254, 0.15) 0%,
+      rgba(11, 13, 18, 0.64) 48%,
+      rgba(9, 10, 14, 0.76) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px rgba(115, 198, 254, 0.3),
+      inset 0 1px 0 rgba(205, 234, 255, 0.35),
+      0 20px 54px -20px rgba(115, 198, 254, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .opus-plate::before {
     content: '';
     position: absolute;
     inset: -1px;
     border-radius: inherit;
     padding: 1.5px;
     background: conic-gradient(
-      from 200deg,
-      rgba(255, 120, 200, 0.5),
-      rgba(120, 170, 255, 0.55) 26%,
-      rgba(140, 245, 220, 0.4) 46%,
-      rgba(255, 205, 120, 0.45) 68%,
-      rgba(255, 120, 200, 0.5)
+      from var(--ring-angle),
+      rgba(115, 198, 254, 0) 0deg,
+      rgba(115, 198, 254, 0.2) 34deg,
+      rgba(150, 214, 255, 0.95) 70deg,
+      #ffffff 92deg,
+      rgba(150, 214, 255, 0.95) 114deg,
+      rgba(115, 198, 254, 0.2) 150deg,
+      rgba(115, 198, 254, 0) 188deg,
+      rgba(115, 198, 254, 0) 360deg
     );
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    opacity: 0.5;
+    animation: ring-orbit 5.2s linear infinite;
     pointer-events: none;
   }
 
-  /* The site is one object resting on the desk. Its edge is visible. */
-  .shell-frame {
-    border-radius: var(--shell-radius);
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.85) inset,
-      0 1px 0 0 rgba(255, 255, 255, 1) inset,
-      0 0 0 1px rgba(10, 10, 11, 0.1),
-      0 2px 4px rgba(10, 10, 11, 0.05),
-      0 24px 50px -26px rgba(10, 10, 11, 0.24),
-      0 60px 110px -60px rgba(10, 10, 11, 0.34);
+  .opus-plate::after {
+    content: '';
+    position: absolute;
+    inset: -18px;
+    border-radius: inherit;
+    background: radial-gradient(closest-side, rgba(115, 198, 254, 0.72) 0%, transparent 74%);
+    filter: blur(16px);
+    animation: ring-breathe 5.2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
   }
 
-  .stack-3d {
-    transform-style: preserve-3d;
-  }
-
-  /* Brushed anodised aluminium. */
-  .brushed {
-    background-image:
-      repeating-linear-gradient(
-        176deg,
-        rgba(255, 255, 255, 0.5) 0px,
-        rgba(255, 255, 255, 0) 1.5px,
-        rgba(10, 10, 11, 0.05) 2.5px,
-        rgba(255, 255, 255, 0) 4px
-      ),
-      linear-gradient(
-        104deg,
-        rgba(10, 10, 11, 0.16) 0%,
-        rgba(255, 255, 255, 0.95) 17%,
-        rgba(10, 10, 11, 0.08) 38%,
-        rgba(255, 255, 255, 0.8) 58%,
-        rgba(10, 10, 11, 0.14) 78%,
-        rgba(255, 255, 255, 0.7) 100%
-      ),
-      linear-gradient(184deg, #fdfdfe 0%, #dfe3e8 44%, #b9c0c9 74%, #e6e9ed 100%);
+  /* The name itself, lit rather than just coloured. */
+  .opus-word {
+    color: #ffffff;
+    text-shadow:
+      0 0 14px rgba(115, 198, 254, 0.95),
+      0 0 34px rgba(115, 198, 254, 0.6),
+      0 0 64px rgba(115, 198, 254, 0.3);
   }
 }
 
@@ -319,5 +654,184 @@
   }
   .accent {
     color: rgb(var(--accent));
+  }
+  /* The emphasised half of a display line — the reference's one move. */
+  .lit {
+    color: #73c6fe;
+  }
+
+  /*
+   * Polished metal. A chrome ramp clipped to the glyphs, with a specular
+   * sweep travelling across it — the one Y2K move on the site.
+   */
+  .chrome {
+    background-image:
+      linear-gradient(
+        100deg,
+        transparent 38%,
+        rgba(255, 255, 255, 0.85) 48%,
+        transparent 58%
+      ),
+      linear-gradient(
+        180deg,
+        #ffffff 2%,
+        #cfe0f2 16%,
+        #7e93aa 33%,
+        #16202c 49%,
+        #2b3b4d 50%,
+        #5d748c 51%,
+        #b9cde0 68%,
+        #ffffff 80%,
+        #8aa0b6 100%
+      );
+    background-size:
+      200% 100%,
+      100% 100%;
+    background-position:
+      0% 0,
+      0 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: chrome-sweep 5.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.25))
+      drop-shadow(0 0 18px rgba(115, 198, 254, 0.45));
+  }
+
+  /*
+   * Entrance. A pane comes forward out of the dark rather than sliding up
+   * into it, which is the same axis the scroll depth works on.
+   *
+   * Driven by a class, not by Framer: an inline transform from the animation
+   * library and the depth transform cannot both live on one element, and a
+   * CSS animation is also the only version I can verify actually ran.
+   */
+  .reveal {
+    opacity: 0;
+  }
+
+  .reveal-in {
+    animation: reveal-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /*
+   * Chromatic aberration, the reference's loudest signature.
+   *
+   * A real lens converges worst at its edges, so the split is driven by the
+   * pane's own distance from the centre of the screen — `--dx` is already
+   * being written there by the depth field, and custom properties inherit,
+   * so the card reads it for free. Dead centre the type is clean; at the far
+   * columns the red and the cyan pull apart.
+   */
+  .aberrate {
+    text-shadow:
+      calc(var(--dx, 0) * -2px - 0.5px) 0 0 rgba(255, 60, 120, 0.6),
+      calc(var(--dx, 0) * 2px + 0.5px) 0 0 rgba(60, 200, 255, 0.6);
+  }
+
+  /* The same split on the edge of the glass itself. */
+  .fringe::before,
+  .fringe::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    z-index: 2;
+  }
+
+  .fringe::before {
+    box-shadow: inset 0 0 0 1.5px rgba(255, 40, 110, 0.5);
+    transform: translateX(calc(var(--dx, 0) * -2.6px - 0.5px));
+  }
+
+  .fringe::after {
+    box-shadow: inset 0 0 0 1.5px rgba(40, 190, 255, 0.5);
+    transform: translateX(calc(var(--dx, 0) * 2.6px + 0.5px));
+  }
+
+  /*
+   * There is no `.reflect` here any more, and it must not come back on a pane
+   * that is `preserve-3d`. `-webkit-box-reflect` is applied to the composited
+   * output, and a preserve-3d subtree is composited one child at a time — so
+   * the card did not get one mirror below it, every layer inside it got its
+   * own, and the thumbnail's landed across the title. It only ever looked
+   * right while the thumbnail happened to reach the bottom edge of the card.
+   */
+
+  /*
+   * Depth field.
+   *
+   * `--d` is how far this pane sits from the reading line, normalised to
+   * -1..1 and written by a single scroll listener. Everything below is
+   * derived from it in CSS, so the whole grid bends on the compositor and
+   * not one React render happens while you scroll.
+   *
+   * The falloff is squared throughout: it is symmetric without needing abs(),
+   * and it keeps the middle of the screen flat and sharp while the far rows
+   * fall away — which is the curvature the reference is shot through.
+   */
+  /*
+   * No `perspective` property here on purpose.
+   *
+   * As a property it only reaches its direct children, and the cards sit five
+   * levels further down — so every translateZ projected orthographically and
+   * the whole field rendered dead flat. Each pane carries its own
+   * `perspective()` in its transform instead, which is what actually makes
+   * the depth exist.
+   */
+  .depth-field {
+    transform-style: flat;
+  }
+
+  /*
+   * `--d` is vertical distance from the reading line, `--dx` horizontal
+   * distance from the centre of the screen. Both -1..1.
+   *
+   * The pane must not be the one Framer is animating: Framer writes
+   * `transform` as an inline style, which beats a class outright, and the
+   * whole field silently does nothing. It always goes on a wrapper.
+   */
+  .depth-item {
+    --d: 0;
+    --dx: 0;
+    /* The sine that never stops, so nothing is ever quite still. */
+    --fl: 0;
+    /* Hover tilt, written by the pointer. Zero when nothing is hovering. */
+    --tx: 0deg;
+    --ty: 0deg;
+    /*
+     * A long lens, not a fisheye. These numbers were first tuned while the
+     * perspective was silently broken, so they had to be enormous to show at
+     * all; with a real vanishing point the same values tore the grid apart.
+     * The whole field is now a few degrees — present everywhere, loud nowhere.
+     */
+    /*
+     * The recession takes both axes, so the corners fall away as well as the
+     * top and the foot: that is the difference between a sheet hinged at the
+     * horizon and a screen actually bowed toward you.
+     */
+    transform: perspective(1700px) translateY(calc(var(--fl) * 7px))
+      translateZ(
+        calc((var(--d) * var(--d) + var(--dx) * var(--dx) * 0.55) * -190px)
+      )
+      rotateX(calc(var(--d) * -5deg + var(--tx) + var(--fl) * 0.55deg))
+      rotateY(calc(var(--dx) * 5deg + var(--ty) + var(--fl) * 0.45deg));
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition:
+      --tx 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      --ty 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /*
+   * The far rows only lose light. Defocus was the obvious fourth cue and it
+   * was wrong: a blurred pane at the edge of the screen reads as a rendering
+   * fault, not as distance. Perspective, rotation and scale carry the depth
+   * on their own, and they never look broken.
+   */
+  .depth-item > * {
+    opacity: calc(1 - var(--d) * var(--d) * 0.45);
   }
 }

@@ -26,6 +26,11 @@ export interface Project {
   readonly runtime: string;
   /** Runtime in seconds — drives the scrub timecode. */
   readonly durationSeconds: number;
+  /**
+   * Lifetime views on YouTube. Stored raw and formatted at render, so the
+   * figure stays checkable and refreshing it is a one-number edit.
+   */
+  readonly views?: number;
   readonly summary: string;
   readonly roles: readonly string[];
   readonly tools: readonly string[];
@@ -39,6 +44,21 @@ export interface Project {
   /** YouTube video id. When present, the card opens the video in a modal. */
   readonly youtubeId?: string;
   readonly href?: string;
+}
+
+/** One AI effect highlight — a short clip that shows a single technique. */
+export interface AiSkill {
+  readonly id: string;
+  readonly title: string;
+  /** The technique, in two or three words. Sits above the title. */
+  readonly tag: string;
+  /** One line on what was actually done. */
+  readonly note: string;
+  readonly media: {
+    readonly poster: string;
+    readonly video: string;
+    readonly alt: string;
+  };
 }
 
 export interface Stat {
