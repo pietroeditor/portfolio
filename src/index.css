@@ -40,20 +40,6 @@
 }
 
 /* The sound button when the browser has refused to let the clip speak. */
-@keyframes beg-for-sound {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 1px rgba(115, 198, 254, 0.55),
-      0 0 0 0 rgba(115, 198, 254, 0.5);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px rgba(150, 214, 255, 0.9),
-      0 0 26px 6px rgba(115, 198, 254, 0.42);
-  }
-}
-
 @keyframes ring-orbit {
   to {
     --ring-angle: 360deg;
@@ -516,12 +502,12 @@
   }
 
   /*
-   * The AI tab. A point of light runs the perimeter continuously and a halo
+   * The Latest tab. A point of light runs the perimeter continuously and a halo
    * breathes under it, so the one nav item that is new reads as new without
    * being louder than the bar it sits in.
    */
   /* At rest it still reads as a chip, so the tab is marked even mid-orbit. */
-  .ai-ring {
+  .new-ring {
     background:
       linear-gradient(180deg, rgba(115, 198, 254, 0.16) 0%, rgba(115, 198, 254, 0.05) 100%);
     box-shadow:
@@ -529,7 +515,7 @@
       inset 0 1px 0 rgba(205, 234, 255, 0.35);
   }
 
-  .ai-ring::before {
+  .new-ring::before {
     content: '';
     position: absolute;
     inset: -1px;
@@ -556,7 +542,7 @@
   }
 
   /* The halo the ring sits in. Kept behind the label, never over it. */
-  .ai-ring::after {
+  .new-ring::after {
     content: '';
     position: absolute;
     inset: -8px;
@@ -569,32 +555,30 @@
   }
 
   /*
-   * The Opus 5 plate. The same point of light running the same perimeter as
-   * the AI tab, at the size of a box — so the claim about the tool is marked
-   * by the device that marked the tab you clicked to get here. Slower, since
-   * a long perimeter at the tab's speed reads as a spinner.
-   *
-   * The pseudo-elements take `border-radius: inherit`, so the plate can be
-   * given any radius by the markup and the ring follows it.
+   * A lit plate. The same point of light running the same perimeter as the
+   * Latest tab, but at any size and any radius: the pseudo-elements take
+   * `border-radius: inherit`, so the markup decides the shape and the ring
+   * follows it. Slower than the tab, because a long perimeter travelled at
+   * the tab's speed stops reading as light and starts reading as a spinner.
    */
-  .opus-plate {
+  .plate {
     position: relative;
     isolation: isolate;
     background: linear-gradient(
       145deg,
-      rgba(115, 198, 254, 0.15) 0%,
-      rgba(11, 13, 18, 0.64) 48%,
-      rgba(9, 10, 14, 0.76) 100%
+      rgba(115, 198, 254, 0.14) 0%,
+      rgba(11, 13, 18, 0.66) 48%,
+      rgba(9, 10, 14, 0.78) 100%
     );
     box-shadow:
-      inset 0 0 0 1px rgba(115, 198, 254, 0.3),
-      inset 0 1px 0 rgba(205, 234, 255, 0.35),
-      0 20px 54px -20px rgba(115, 198, 254, 0.8);
+      inset 0 0 0 1px rgba(115, 198, 254, 0.26),
+      inset 0 1px 0 rgba(205, 234, 255, 0.3),
+      0 18px 46px -22px rgba(115, 198, 254, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
 
-  .opus-plate::before {
+  .plate::before {
     content: '';
     position: absolute;
     inset: -1px;
@@ -620,25 +604,16 @@
     pointer-events: none;
   }
 
-  .opus-plate::after {
+  .plate::after {
     content: '';
     position: absolute;
-    inset: -18px;
+    inset: -14px;
     border-radius: inherit;
-    background: radial-gradient(closest-side, rgba(115, 198, 254, 0.72) 0%, transparent 74%);
-    filter: blur(16px);
+    background: radial-gradient(closest-side, rgba(115, 198, 254, 0.6) 0%, transparent 74%);
+    filter: blur(14px);
     animation: ring-breathe 5.2s ease-in-out infinite;
     pointer-events: none;
     z-index: -1;
-  }
-
-  /* The name itself, lit rather than just coloured. */
-  .opus-word {
-    color: #ffffff;
-    text-shadow:
-      0 0 14px rgba(115, 198, 254, 0.95),
-      0 0 34px rgba(115, 198, 254, 0.6),
-      0 0 64px rgba(115, 198, 254, 0.3);
   }
 }
 

@@ -45,6 +45,14 @@ const Person = (
   </svg>
 );
 
+const Users = (
+  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden {...stroke}>
+    <circle cx="6.2" cy="5.6" r="2.4" />
+    <path d="M1.8 13.2a4.4 4.4 0 0 1 8.8 0" />
+    <path d="M10.8 3.6a2.4 2.4 0 0 1 0 4.5M12 9.6a4.4 4.4 0 0 1 2.3 3.6" />
+  </svg>
+);
+
 const Mail = (
   <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden {...stroke}>
     <rect x="1.8" y="3.4" width="12.4" height="9.2" rx="1.6" />
@@ -52,10 +60,12 @@ const Mail = (
   </svg>
 );
 
+/** In document order, so the indicator never travels against the scroll. */
 const TABS = [
+  /** The newest work, marked as such — and the opener. */
+  { id: 'latest', label: 'Latest', icon: Spark, ring: true },
   { id: 'work', label: 'Work', icon: Grid, ring: false },
-  /** The one new thing on the site, marked as such. */
-  { id: 'ai', label: 'AI', icon: Spark, ring: true },
+  { id: 'clients', label: 'Clients', icon: Users, ring: false },
   { id: 'about', label: 'About', icon: Person, ring: false },
   { id: 'contact', label: 'Contact', icon: Mail, ring: false },
 ] as const satisfies readonly { id: View; label: string; icon: unknown; ring: boolean }[];
@@ -88,7 +98,7 @@ export function Dock({ view, onGo }: { view: View; onGo: (next: View) => void })
                 'relative flex items-center gap-2 rounded-full px-3 py-2 text-meta font-medium transition-colors duration-300 ease-drift sm:px-3.5',
                 // The halo sits at z-index -1, so the tab has to own a
                 // stacking context or it would fall behind the whole dock.
-                ring ? 'ai-ring isolate text-ink' : current ? 'text-ink' : 'text-muted hover:text-ink',
+                ring ? 'new-ring isolate text-ink' : current ? 'text-ink' : 'text-muted hover:text-ink',
               )}
             >
               {current && (

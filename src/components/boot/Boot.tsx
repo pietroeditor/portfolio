@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { playBootSound } from '@/lib/bootSound';
 import { lockScroll } from '@/lib/scrollLock';
 
 /**
@@ -24,7 +25,7 @@ const POST = [
   'TIMELINE ....... MOUNTED',
   'CODEC H.264 / PRORES 422',
   'RENDER ENGINE .. READY',
-  '6 CUTS ON DISK. 1 AI REEL.',
+  '6 CUTS ON DISK. 2 NEW REELS.',
 ] as const;
 
 /** Where each phase hands over, in milliseconds from power-on. */
@@ -93,6 +94,17 @@ export function Boot({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (!covering) return;
     return lockScroll();
+  }, [covering]);
+
+  /**
+   * The sound rides the same flag as the lock, for the same reason: skipping
+   * the intro has to take the audio with it, and the effect that runs the
+   * sequence never cleans up. Starting it here also means it is started once
+   * per appearance of the tube, not once per mount.
+   */
+  useEffect(() => {
+    if (!covering) return;
+    return playBootSound();
   }, [covering]);
 
   useEffect(() => {

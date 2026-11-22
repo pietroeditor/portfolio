@@ -24,14 +24,14 @@ export function indexLabel(index: number): string {
 }
 
 /**
- * A view count, the way a viewer already reads one: 742K, 1.2M, 40.9K.
+ * A big number, the way a viewer already reads one: 742K, 1.2M, 40.9K.
  *
- * Rounded down, never up — a card that claims 1M on 998,400 views is wrong in
- * the direction that matters. One decimal is kept below ten units so 1.2M does
+ * Rounded down, never up — a card that claims 1M on 998,400 is wrong in the
+ * direction that matters. One decimal is kept below ten units so 1.2M does
  * not flatten to 1M, and dropped above it where the digit is noise.
  */
-export function formatViews(views: number): string {
-  if (!Number.isFinite(views) || views < 0) return '0';
+export function formatCount(value: number): string {
+  if (!Number.isFinite(value) || value < 0) return '0';
 
   const units = [
     { at: 1e9, suffix: 'B' },
@@ -40,13 +40,13 @@ export function formatViews(views: number): string {
   ];
 
   for (const { at, suffix } of units) {
-    if (views < at) continue;
-    const scaled = views / at;
+    if (value < at) continue;
+    const scaled = value / at;
     // Truncate rather than round, then trim a trailing .0 — 2.0M reads worse
     // than 2M and says nothing more.
     const digits = scaled < 10 ? Math.floor(scaled * 10) / 10 : Math.floor(scaled);
     return `${digits}${suffix}`;
   }
 
-  return String(Math.floor(views));
+  return String(Math.floor(value));
 }

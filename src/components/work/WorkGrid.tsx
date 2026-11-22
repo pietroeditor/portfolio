@@ -303,14 +303,12 @@ export function WorkGrid({ projects, onOpen, onHover }: WorkGridProps) {
     <section id="work" className="relative pb-bay pt-3">
       <div className="mx-auto w-full max-w-shell px-gutter">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-          {/* The two halves that carry the claim are lit; the hinge recedes. */}
+          {/* Says what it is and nothing else. The eyebrow carries the label. */}
           <motion.div variants={riseIn}>
-            <span className="eyebrow">Selected work</span>
-            <h1 className="mt-5 max-w-[20ch] text-balance font-serif text-title">
-              <span className="lit">Six cuts</span>
-              <span> that explain </span>
-              <span className="lit">how I think.</span>
-            </h1>
+            <span className="eyebrow">Portfolio</span>
+            <h2 className="mt-5 max-w-[20ch] text-balance font-serif text-title">
+              <span className="lit">Selected work.</span>
+            </h2>
           </motion.div>
 
           <div className="mt-block grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-8">

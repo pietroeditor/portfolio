@@ -11,7 +11,8 @@ import { Boot } from '@/components/boot/Boot';
 import { DepthField } from '@/components/fx/DepthField';
 import { WhatIDo } from '@/components/sections/WhatIDo';
 import { WorkGrid } from '@/components/work/WorkGrid';
-import { AiSkills } from '@/components/sections/AiSkills';
+import { Clients } from '@/components/sections/Clients';
+import { Latest } from '@/components/sections/Latest';
 import { Contact } from '@/components/sections/Contact';
 import { VideoModal } from '@/components/media/VideoModal';
 import type { Project } from '@/types';
@@ -34,10 +35,10 @@ export default function App() {
   return (
     <>
       <a
-        href="#work"
+        href="#latest"
         className="sr-only focus:not-sr-only focus:fixed focus:left-8 focus:top-8 focus:z-[180] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2.5 focus:text-micro focus:font-semibold focus:text-shell"
       >
-        Skip to work
+        Skip to content
       </a>
 
       <Backdrop />
@@ -58,12 +59,16 @@ export default function App() {
           style={{ paddingLeft: 'var(--frame)', paddingRight: 'var(--frame)' }}
         >
           {/*
-            One page, four sections, in the order the nav lists them — the
-            nav and the dock mark where you are and scroll you there.
+            One page, four sections, in the order the dock lists them — the
+            dock marks where you are and scrolls you there. The newest work
+            opens the site, so the first thing a visitor sees is the most
+            recent thing made rather than the oldest.
           */}
+          <Latest />
+
           <WorkGrid projects={featuredProjects} onOpen={handleOpen} onHover={setAccentSource} />
 
-          <AiSkills />
+          <Clients />
 
           <WhatIDo />
 

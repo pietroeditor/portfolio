@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const VIEWS = ['work', 'ai', 'about', 'contact'] as const;
+/**
+ * Document order. The spy walks this list and takes the last section whose
+ * top has passed the reading line, so it has to match the order the sections
+ * are actually laid out in — not the order they were written in.
+ */
+export const VIEWS = ['latest', 'work', 'clients', 'about', 'contact'] as const;
 export type View = (typeof VIEWS)[number];
 
-const DEFAULT: View = 'work';
+const DEFAULT: View = 'latest';
 
 /** Where down the viewport a section counts as the one being read. */
 const READING_LINE = 0.34;

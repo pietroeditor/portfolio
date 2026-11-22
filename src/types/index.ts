@@ -46,19 +46,32 @@ export interface Project {
   readonly href?: string;
 }
 
-/** One AI effect highlight — a short clip that shows a single technique. */
-export interface AiSkill {
+/** Games with a mark drawn for them. Adding one means drawing one. */
+export type GameMark = 'roblox' | 'brawl-stars';
+
+/** One recent piece — a short clip shown full width, at the top of the site. */
+export interface Reel {
   readonly id: string;
   readonly title: string;
-  /** The technique, in two or three words. Sits above the title. */
-  readonly tag: string;
-  /** One line on what was actually done. */
-  readonly note: string;
+  /** Marks which game the clip is from, in the corner of the frame. */
+  readonly game: GameMark;
   readonly media: {
     readonly poster: string;
     readonly video: string;
     readonly alt: string;
   };
+}
+
+/** A channel the work goes to. */
+export interface Client {
+  readonly id: string;
+  readonly name: string;
+  /** The @handle, shown under the name. */
+  readonly handle: string;
+  /** Subscribers, raw. Formatted at render so the figure stays checkable. */
+  readonly subscribers: number;
+  readonly avatar: string;
+  readonly href: string;
 }
 
 export interface Stat {
